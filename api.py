@@ -1,16 +1,15 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_restful import Api, Resource, reqparse, abort
-
-from flask import request, jsonify
+import uuid
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 api = Api(app)
 
 users = [
-    {'id': 0, 'username': 'Fire'},
-    {'id': 1, 'username': 'Omelas'},
-    {'id': 2, 'username': 'Dhalgren'}
+    {'id': "d45581f3a63f4b0b", 'username': 'Fire'},
+    {'id': "f41cda46ec974d9e", 'username': 'Omelas'},
+    {'id': "5a93949a308b4570", 'username': 'Dhalgren'}
 ]
 
 @app.route('/api/users', methods=['GET', 'SET'])
@@ -21,18 +20,27 @@ def usr():
     
     # Registers an user
     if request.method == 'SET':
-        newUser = { "id": len(users), "username": request.args.get('username') }
+        newUser = { "id": uuid.uuid4().hex[:16], "username": request.json["username"] }
         users.append(newUser)
-
         return jsonify(users)
 
-"""
-@app.route('/api/user/<user-id>', methods=['GET', 'SET'])
-def usr_id():
+@app.route('/api/user/<string:user_id>', methods=['GET', 'DELETE'])
+def usr_id(user_id):
+    # Checks if selected id exists, if not throws an exception
+    selectedUser = None
+    for user in users:
+        if user["id"] == user_id:
+            selectedUser = user
+    if selectedUser == None:
+        abort(404)
+
     # Return user with specific id
     if request.method == 'GET':
+        return selectedUser
 
     # Delete user with specific id
-    return
-"""
+    if request.method == 'DELETE':
+        users.remove(user)
+        return jsonify(users)
+
 app.run()
