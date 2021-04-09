@@ -2,4 +2,4 @@
 ## Obligatory assignment 2:  wRESTling bots
 Gruppemedlemmer:  
 * Nikola Dordevic, s341839
-* Jørund Topp Løvlien, s34
+* Jørund Topp Løvlien, s341822
