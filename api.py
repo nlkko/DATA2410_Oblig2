@@ -138,26 +138,32 @@ def roo_usrs(room_id):
 
     # Add a user to a room OBS: Only registered users can join
     if request.method == 'POST':
-        # Check if user_id is valid
-        selected_user = return_selected(request.json["user_id"], users)["id"]
+        try:
+            # Check if user_id is valid
+            selected_user = return_selected(request.json["user_id"], users)["id"]
 
-        # Checks if user is not already in the room
-        if selected_user not in selected_room["users"]:
-            selected_room["users"].append(selected_user)
-        return jsonify(selected_room["users"])
+            # Checks if user is not already in the room
+            if selected_user not in selected_room["users"]:
+                selected_room["users"].append(selected_user)
+            return jsonify(selected_room["users"])
+        except TypeError:
+            # Handles exception if user does not give input an user_id
+            abort(400)
 
 
 # Messages for a room
 @app.route("/api/room/<string:room_id>/messages", methods=["GET"])
 def mess(room_id):
-    selected_room = return_selected(room_id, rooms)
-    user_id = "d45581f3a63f4b0b"
-    #user = return_selected(user_id, users)
-    in_room = False
+    try:
+        selected_room = return_selected(room_id, rooms)
+        logged_user_id = return_selected(request.json["user_id", users])["id"]
+    except TypeError:
+        abort(400)
 
+    in_room = False
     # Checks if user that sent request is in room
     for use in selected_room["users"]:
-        if use == user_id:
+        if use == logged_user_id:
             in_room = True
             break
 
