@@ -49,7 +49,7 @@ def returnSelected(id, objects, type="id"):
     selected = None
     for object in objects:
         if object[type] == id:
-            selected = object[type]
+            selected = object
 
     if selected is None:
         abort(404)
@@ -126,16 +126,7 @@ def roo_id(room_id):
 # Room users:
 @app.route("/api/room/<string:room_id>/users", methods=['GET', 'POST'])
 def roo_usrs(room_id):
-    selected_room = None
-    for room in rooms:
-        if room["id"] == room_id:
-            selected_room = room
-            break
-
-    if selected_room is None:
-        abort(404)
-
-    print(selected_room)
+    selected_room = returnSelected(room_id, rooms)
 
     # Get all users from a room
     if request.method == 'GET':
@@ -143,8 +134,14 @@ def roo_usrs(room_id):
 
     # Add a user to a room OBS: Only registered users can join
     if request.method == 'POST':
-        return
-        
+        # Check if user_id is valid
+        selected_user = returnSelected(request.json["user_id"], users)["id"]
+
+        # Checks if user is not already in the room
+        if selected_user not in selected_room["users"]:
+            selected_room["users"].append(selected_user)
+        return jsonify(selected_room["users"])
+
 # Messages:
 @app.route("/api/room/<string:room_id>/messages", methods=["GET"])
 def mess(room_id):
