@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_restful import Api, Resource, reqparse, abort
 import uuid
+import requests
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -16,15 +17,46 @@ rooms = [
     {'id': "d45581f3a63f4b0a",
      "name": "Test",
      "user_id": "d45581f3a63f4b0b",
-     "users": [],
-     "messages": []}
+     "users": ["d45581f3a63f4b0b", "f41cda46ec974d9e", "5a93949a308b4570"],
+     "messages": [
+         {
+             "user_id": "5a93949a308b4570",
+             "message": "Hey mister"
+         },
+         {
+             "user_id": "f41cda46ec974d9e",
+             "message": "Hey fister"
+         }
+     ]},
+    {'id': "f41cda46ec974d9f",
+     "name": "Test2",
+     "user_id": "d45581f3a63f4b0b",
+     "users": [""],
+     "messages": [
+         {
+             "user_id": "d45581f3a63f4b0b",
+             "message": "Hello"
+         },
+         {
+             "user_id": "f41cda46ec974d9e",
+             "message": "Hey there"
+         }
+     ]},
 ]
 
-message = [
-    {"text": "", "user_id": ""}
-]
+# Checks if given id exists then returns the object, if not throws an exception
+def returnSelected(id, objects, type="id"):
+    selected = None
+    for object in objects:
+        if object[type] == id:
+            selected = object[type]
 
+    if selected is None:
+        abort(404)
+    
+    return selected
 
+# Users
 @app.route('/api/users', methods=['GET', 'POST'])
 def usr():
     # Returns all registered users in json
@@ -37,18 +69,11 @@ def usr():
         users.append(new_user)
         return jsonify(users)
 
-
+# Chat-Rooms:
 @app.route('/api/user/<string:user_id>', methods=['GET', 'DELETE'])
 def usr_id(user_id):
     # Checks if selected id exists, if not throws an exception
-    selected_user = None
-    for user in users:
-        if user["id"] == user_id:
-            selected_user = user
-            break
-
-    if selected_user is None:
-        abort(404)
+    selected_user = returnSelected(user_id, users)
 
     # Return user with specific id
     if request.method == 'GET':
@@ -98,7 +123,29 @@ def roo_id(room_id):
         else:
             abort(401)
 
+# Room users:
+@app.route("/api/room/<string:room_id>/users", methods=['GET', 'POST'])
+def roo_usrs(room_id):
+    selected_room = None
+    for room in rooms:
+        if room["id"] == room_id:
+            selected_room = room
+            break
 
+    if selected_room is None:
+        abort(404)
+
+    print(selected_room)
+
+    # Get all users from a room
+    if request.method == 'GET':
+        return jsonify(selected_room["users"])
+
+    # Add a user to a room OBS: Only registered users can join
+    if request.method == 'POST':
+        return
+        
+# Messages:
 @app.route("/api/room/<string:room_id>/messages", methods=["GET"])
 def mess(room_id):
     selected_room = None
@@ -123,6 +170,5 @@ def mess_user(room_id, user_id):
 
     if selected_room is None:
         abort(404)
-
 
 app.run()
