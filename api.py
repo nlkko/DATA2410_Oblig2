@@ -13,7 +13,15 @@ users = [
 ]
 
 rooms = [
-    {'id': "d45581f3a63f4b0a", "name": "Test", "creator_id": "d45581f3a63f4b0b"}
+    {'id': "d45581f3a63f4b0a",
+     "name": "Test",
+     "user_id": "d45581f3a63f4b0b",
+     "users": [],
+     "messages": []}
+]
+
+message = [
+    {"text": "", "user_id": ""}
 ]
 
 
@@ -22,7 +30,7 @@ def usr():
     # Returns all registered users in json
     if request.method == 'GET':
         return jsonify(users)
-    
+
     # Registers an user
     if request.method == 'POST':
         new_user = {"id": uuid.uuid4().hex[:16], "username": request.json["username"]}
@@ -60,7 +68,7 @@ def roo():
 
     # Creates a new room
     if request.method == 'POST':
-        new_room = {"id": uuid.uuid4().hex[:16], "name": "", "creator_id": ""}
+        new_room = {"id": uuid.uuid4().hex[:16], "name": "", "user_id": ""}
         users.append(new_room)
         return jsonify(rooms)
 
@@ -84,11 +92,37 @@ def roo_id(room_id):
 
     # Deletes room if user_id was the same as the room creator
     if request.method == "DELETE":
-        if user_id == selected_room["creator_id"]:
+        if user_id == selected_room["user_id"]:
             rooms.remove(selected_room)
             return jsonify(rooms)
         else:
-            abort(400)
+            abort(401)
+
+
+@app.route("/api/room/<string:room_id>/messages", methods=["GET"])
+def mess(room_id):
+    selected_room = None
+    for room in rooms:
+        if room["id"] == room_id:
+            selected_room = room
+            break
+
+    if selected_room is None:
+        abort(404)
+
+    return jsonify(selected_room)
+
+
+@app.route("/api/room/<string:room_id>/<string:user_id>/messages", methods=["GET", "POST"])
+def mess_user(room_id, user_id):
+    selected_room = None
+    for room in rooms:
+        if room["id"] == room_id:
+            selected_room = room
+            break
+
+    if selected_room is None:
+        abort(404)
 
 
 app.run()
