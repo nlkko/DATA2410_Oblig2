@@ -44,17 +44,19 @@ rooms = [
      ]},
 ]
 
+
 # Checks if given id exists then returns the object, if not throws an exception
-def returnSelected(id, objects, type="id"):
+def return_selected(id, objects, type="id"):
     selected = None
-    for object in objects:
-        if object[type] == id:
-            selected = object
+    for obj in objects:
+        if obj[type] == id:
+            selected = obj
 
     if selected is None:
         abort(404)
-    
+
     return selected
+
 
 # Users
 @app.route('/api/users', methods=['GET', 'POST'])
@@ -69,11 +71,12 @@ def usr():
         users.append(new_user)
         return jsonify(users)
 
+
 # Chat-Rooms:
 @app.route('/api/user/<string:user_id>', methods=['GET', 'DELETE'])
 def usr_id(user_id):
     # Checks if selected id exists, if not throws an exception
-    selected_user = returnSelected(user_id, users)
+    selected_user = return_selected(user_id, users)
 
     # Return user with specific id
     if request.method == 'GET':
@@ -123,10 +126,11 @@ def roo_id(room_id):
         else:
             abort(401)
 
+
 # Room users:
 @app.route("/api/room/<string:room_id>/users", methods=['GET', 'POST'])
 def roo_usrs(room_id):
-    selected_room = returnSelected(room_id, rooms)
+    selected_room = return_selected(room_id, rooms)
 
     # Get all users from a room
     if request.method == 'GET':
@@ -135,37 +139,67 @@ def roo_usrs(room_id):
     # Add a user to a room OBS: Only registered users can join
     if request.method == 'POST':
         # Check if user_id is valid
-        selected_user = returnSelected(request.json["user_id"], users)["id"]
+        selected_user = return_selected(request.json["user_id"], users)["id"]
 
         # Checks if user is not already in the room
         if selected_user not in selected_room["users"]:
             selected_room["users"].append(selected_user)
         return jsonify(selected_room["users"])
 
-# Messages:
+
+# Messages for a room
 @app.route("/api/room/<string:room_id>/messages", methods=["GET"])
 def mess(room_id):
-    selected_room = None
-    for room in rooms:
-        if room["id"] == room_id:
-            selected_room = room
+    selected_room = return_selected(room_id, rooms)
+    user_id = ""
+    user = return_selected(user_id, users)
+    in_room = False
+
+    # Checks if user that sent request is in room
+    for use in selected_room["users"]:
+        if use == user_id:
+            in_room = True
             break
 
-    if selected_room is None:
-        abort(404)
+    if not in_room:
+        abort(401)
 
-    return jsonify(selected_room)
+    # Returns messages
+    if request.method == "GET":
+        return jsonify(selected_room["messages"])
 
 
+# Messages for one user in a room
 @app.route("/api/room/<string:room_id>/<string:user_id>/messages", methods=["GET", "POST"])
 def mess_user(room_id, user_id):
-    selected_room = None
-    for room in rooms:
-        if room["id"] == room_id:
-            selected_room = room
+    selected_room = return_selected(room_id, rooms)
+
+    # Checks if user is valid
+    selected_user = return_selected(user_id, users)
+
+    # Checks if user is in room
+    in_room = False
+    for user in selected_room["users"]:
+        if user == user_id:
+            in_room = True
             break
 
-    if selected_room is None:
+    if not in_room:
         abort(404)
+
+    # Sends all messages from specified user
+    if request.method == "GET":
+        user_messages = []
+        for message in selected_room["messages"]:
+            if message["user_id"] == user_id:
+                user_messages.append(message)
+        return jsonify(user_messages)
+
+    # Post message from user
+    if request.method == "POST":
+        message = {"user_id": user_id, "message": ""}
+        selected_room["messages"].append(message)
+        return jsonify(message)
+
 
 app.run()
