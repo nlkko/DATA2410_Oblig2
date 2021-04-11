@@ -130,7 +130,13 @@ def roo_id(room_id):
 # Room users:
 @app.route("/api/room/<string:room_id>/users", methods=['GET', 'POST'])
 def roo_usrs(room_id):
-    selected_room = return_selected(room_id, rooms)
+    try:
+        # Check if user_id is valid
+        logged_user_id = return_selected(request.json["user_id"], users)["id"]
+        selected_room = return_selected(room_id, rooms)
+    except TypeError:
+            # Handles exception if user does not give input an user_id
+            abort(400)
 
     # Get all users from a room
     if request.method == 'GET':
@@ -138,17 +144,11 @@ def roo_usrs(room_id):
 
     # Add a user to a room OBS: Only registered users can join
     if request.method == 'POST':
-        try:
-            # Check if user_id is valid
-            selected_user = return_selected(request.json["user_id"], users)["id"]
-
-            # Checks if user is not already in the room
-            if selected_user not in selected_room["users"]:
-                selected_room["users"].append(selected_user)
-            return jsonify(selected_room["users"])
-        except TypeError:
-            # Handles exception if user does not give input an user_id
-            abort(400)
+        # Checks if user is not already in the room
+        if selected_user not in selected_room["users"]:
+            selected_room["users"].append(selected_user)
+        return jsonify(selected_room["users"])
+        
 
 
 # Messages for a room
