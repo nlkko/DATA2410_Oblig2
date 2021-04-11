@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_restful import Api, Resource, reqparse, abort
+from flask_restful import Api, abort
 import uuid
 import requests
 
@@ -46,10 +46,10 @@ rooms = [
 
 
 # Checks if given id exists then returns the object, if not throws an exception
-def return_selected(id, objects, type="id"):
+def return_selected(search, objects, search_type="id"):
     selected = None
     for obj in objects:
-        if obj[type] == id:
+        if obj[search_type] == search:
             selected = obj
 
     if selected is None:
@@ -130,13 +130,15 @@ def roo_id(room_id):
 # Room users:
 @app.route("/api/room/<string:room_id>/users", methods=['GET', 'POST'])
 def roo_usrs(room_id):
+    logged_user_id = None
+    selected_room = None
     try:
         # Check if user_id is valid
         logged_user_id = return_selected(request.json["user_id"], users)["id"]
         selected_room = return_selected(room_id, rooms)
     except TypeError:
-            # Handles exception if user does not give input an user_id
-            abort(400)
+        # Handles exception if user does not give input an user_id
+        abort(400)
 
     # Get all users from a room
     if request.method == 'GET':
@@ -145,19 +147,23 @@ def roo_usrs(room_id):
     # Add a user to a room OBS: Only registered users can join
     if request.method == 'POST':
         # Checks if user is not already in the room
-        if selected_user not in selected_room["users"]:
-            selected_room["users"].append(selected_user)
+        if logged_user_id not in selected_room["users"]:
+            selected_room["users"].append(logged_user_id)
         return jsonify(selected_room["users"])
-        
 
 
 # Messages for a room
 @app.route("/api/room/<string:room_id>/messages", methods=["GET"])
 def mess(room_id):
+    selected_room = None
+    logged_user_id = None
+    # Checks if valid room and user
     try:
         selected_room = return_selected(room_id, rooms)
-        logged_user_id = return_selected(request.json["user_id", users])["id"]
+        logged_user_id = return_selected(request.json["user_id"], users)["id"]
     except TypeError:
+        abort(404)
+    except KeyError:
         abort(400)
 
     in_room = False
@@ -178,23 +184,35 @@ def mess(room_id):
 # Messages for one user in a room
 @app.route("/api/room/<string:room_id>/<string:user_id>/messages", methods=["GET", "POST"])
 def mess_user(room_id, user_id):
-    selected_room = return_selected(room_id, rooms)
+    selected_room = None
+    requesting_user = None
+    selected_user = None
 
     # Checks if user is valid
     try:
-        selected_user = return_selected(user_id, users)
-    except:
+        selected_room = return_selected(room_id, rooms)
+        selected_user = return_selected(user_id, users)["id"]
+        requesting_user = return_selected(request.json["user_id"], users)["id"]
+    except TypeError:
         abort(404)
+    except KeyError:
+        abort(400)
 
     # Checks if user is in room
-    in_room = False
+    user_in_room = False
     for user in selected_room["users"]:
-        if user == user_id:
-            in_room = True
+        if user == selected_user:
+            user_in_room = True
+            break
+    # Checks if requesting user is in room
+    requesting_in_room = False
+    for user in selected_room["users"]:
+        if user == requesting_user:
+            requesting_in_room = True
             break
 
-    if not in_room:
-        abort(404)
+    if not user_in_room or not requesting_in_room:
+        abort(401)
 
     # Sends all messages from specified user
     if request.method == "GET":
@@ -206,7 +224,21 @@ def mess_user(room_id, user_id):
 
     # Post message from user
     if request.method == "POST":
-        message = {"user_id": user_id, "message": ""}
+        # Checks if posting user is the user it posts to
+        if requesting_user != user_id:
+            abort(401)
+
+        in_message = None
+        try:
+            in_message = request.json["message"]
+        except KeyError:
+            abort(400)
+        # Checks if message is empty
+        if in_message == "":
+            abort(406)
+
+        # Adds message to room
+        message = {"user_id": user_id, "message": in_message}
         selected_room["messages"].append(message)
         return jsonify(message)
 
