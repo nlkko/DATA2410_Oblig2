@@ -5,16 +5,10 @@ import sys
 import time
 
 api_url = sys.argv[1]
-user = None
+user_id = None
+room_id = None
 
-def recieve_message:
-    try:
-        while True:
-            return
-
-            time.sleep(0.5)
-    return
-
+"""
 def commands(msg):
     command = msg.split(' ')
         # Get a list of all commands
@@ -35,10 +29,32 @@ def commands(msg):
         
         else:
             print("Command does not exist")
+"""
+def username_of_id(wanted_user_id):
+    return requests.get(api_url +"/api/user/"+ wanted_user_id, data={"user_id: "+ user_id})["username"]
 
-def send_message:
-    msg = input("Write a message: ")
+def send_message():
+    try:
+        while True:
+            msg = input("Write a message: ")
 
-    if msg[0] == "/":
-        commands(msg)
-    return
+            if msg[0] == "/":
+                commands(msg)
+    except:
+        print("send_message ended")
+
+def recieve_message():
+    new_message_array = requests.get(api_url + "/api/room/"+ room_id +"/messages", data={"user_id: "+ user_id})
+    old_message_array = []
+    
+    try:
+        while True:
+            new_messages = [msg for msg in new_message_array if msg not in old_message_array]
+            old_message_array = new_message_array
+            time.sleep(0.5)
+
+            for msg in new_messages:
+                print(username_of_id(msg["id"]) +": "+msg["message"])
+
+    except:
+        print("recieve_message ended")
