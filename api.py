@@ -63,6 +63,13 @@ def return_selected(search, objects, search_type="id"):
 def usr():
     # Returns all registered users in json
     if request.method == 'GET':
+        # Checks if logged in user is valid
+        try:
+            logged_in_user = return_selected(request.json["user_id"], users)
+        except TypeError:
+            abort(404)
+        except KeyError:
+            abort(400)
         return jsonify(users)
 
     # Registers an user
@@ -75,8 +82,16 @@ def usr():
 # Chat-Rooms:
 @app.route('/api/user/<string:user_id>', methods=['GET', 'DELETE'])
 def usr_id(user_id):
+    selected_user = None
+    logged_in_user = None
     # Checks if selected id exists, if not throws an exception
-    selected_user = return_selected(user_id, users)
+    try:
+        selected_user = return_selected(user_id, users)
+        logged_in_user = return_selected(request.json["user_id"], users)["id"]
+    except TypeError:
+        abort(404)
+    except KeyError:
+        abort(400)
 
     # Return user with specific id
     if request.method == 'GET':
@@ -84,25 +99,52 @@ def usr_id(user_id):
 
     # Delete user with specific id
     if request.method == 'DELETE':
+        # Only a user can delete its user
+        if logged_in_user != selected_user:
+            abort(401)
+
         users.remove(selected_user)
         return jsonify(users)
 
 
 @app.route('/api/rooms', methods=['GET', 'POST'])
 def roo():
+    logged_in_user = None
+    # Checks if logged in
+    try:
+        logged_in_user = return_selected(request.json["user_id"], users)["id"]
+    except TypeError:
+        abort(404)
+    except KeyError:
+        abort(400)
+
     # Returns all rooms in json
     if request.method == 'GET':
         return jsonify(rooms)
 
     # Creates a new room
     if request.method == 'POST':
-        new_room = {"id": uuid.uuid4().hex[:16], "name": "", "user_id": ""}
+        name = None
+        try:
+            name = request.json["name"]
+        except KeyError:
+            abort(400)
+        new_room = {"id": uuid.uuid4().hex[:16], "name": name, "user_id": logged_in_user, "messages": [], "users": []}
+        new_room["users"].append(logged_in_user)
         users.append(new_room)
         return jsonify(rooms)
 
 
 @app.route("/api/room/<string:room_id>", methods=["GET", "DELETE"])
 def roo_id(room_id):
+    # Checks if logged in
+    try:
+        logged_in_user = return_selected(request.json["user_id"], users)
+    except TypeError:
+        abort(404)
+    except KeyError:
+        abort(400)
+
     selected_room = None
     user_id = ""
     for room in rooms:
