@@ -132,7 +132,7 @@ def roo():
         new_room = {"id": uuid.uuid4().hex[:16], "name": name, "user_id": logged_in_user, "messages": [], "users": []}
         new_room["users"].append(logged_in_user)
         rooms.append(new_room)
-        return jsonify(rooms)
+        return jsonify(new_room)
 
 
 @app.route("/api/room/<string:room_id>", methods=["GET", "DELETE"])

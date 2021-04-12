@@ -8,11 +8,12 @@ api_url = sys.argv[1]
 user_id = "d45581f3a63f4b0b"
 room_id = None
 running = True
-
+old_message_array = []
 
 def commands(msg):
     global user_id
     global room_id
+    global old_message_array
 
     if msg[0] != "/":
         return
@@ -21,7 +22,12 @@ def commands(msg):
 
     # Get a list of all commands
     if command[0] == "/help":
-        return
+        print("""
+        /register <username> - Registers a user
+        /login <user_id> - Login as a user
+        /join <room_id> - Join a specific room with room_id
+        /create <room_name> - Create a room with the given name
+        """)
 
     # Register as an user
     elif command[0] == "/register":  # <username>
@@ -46,8 +52,7 @@ def commands(msg):
         try:
             req = requests.get("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
             room_id = req.json()["id"]
-            receive_thread = threading.Thread(target=receive_message)
-            receive_thread.start()
+            old_message_array = []
             print("Changed room to {}".format(get_room(command[1])["name"]))
 
         except:
@@ -59,10 +64,12 @@ def commands(msg):
 
     # Create a room
     elif command[0] == "/create":  # <room_name>
-        req = requests.post("{}/api/rooms".format(api_url), json={"user_id": user_id, "name": command[1]})
-        print(command[1] +" "+ req.json()["id"])
-        print("Created a room with name: {} and id: {}".format(command[1], req.json()["id"]))
-        
+        try:
+            req = requests.post("{}/api/rooms".format(api_url), json={"user_id": user_id, "name": command[1]})
+            print("Created a room with name: {} and id: {}".format(command[1], req.json()["id"]))
+        except:
+            if req.status_code == 400:
+                print("No provided user id")
 
     else:
         print("Command does not exist")
@@ -95,14 +102,13 @@ def get_all_users():
     return requests.get("{}/api/users".format(api_url), json={"user_id": user_id})
 
 def receive_message():
-    global running
-    try:
-        old_message_array = []
+    global old_message_array
+    old_message_array = []
 
+    try:
         while running:
             # Finner bare de nye meldingene
-            new_message_array = requests.get("{}/api/room/{}/messages".format(api_url, room_id),
-                                             json={"user_id": user_id}).json()
+            new_message_array = requests.get("{}/api/room/{}/messages".format(api_url, room_id), json={"user_id": user_id}).json()
             new_messages = new_message_array[(len(old_message_array)):]
             old_message_array = new_message_array
             time.sleep(0.5)
@@ -112,8 +118,7 @@ def receive_message():
                     print(get_user(msg["user_id"])["username"] + ": " + msg["message"])
     except:
         running = False
-        print("send_thread stopped")
-
+        print("receive_thread stopped")
 
 def start():
     print("Hello, welcome to wRESTling Bots Chat service")
@@ -130,6 +135,9 @@ def start():
 
     send_thread = threading.Thread(target=send_message)
     send_thread.start()
+    receive_thread = threading.Thread(target=receive_message)
+    receive_thread.start()
+
 
 
 if __name__ == "__main__":
