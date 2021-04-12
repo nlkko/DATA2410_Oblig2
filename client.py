@@ -4,8 +4,8 @@ import sys
 import time
 
 api_url = sys.argv[1]
-user_id = None
-room_id = None
+user_id = "d45581f3a63f4b0b"
+room_id = "d45581f3a63f4b0a"
 running = True
 old_message_array = []
 first_time_thread = 0
@@ -29,6 +29,8 @@ def commands(msg):
             /login <user_id> - Login as a user
             /join <room_id> - Join a specific room with room_id
             /create <room_name> - Create a room with the given name
+            /getRooms - Get all rooms
+            /getRoomUsers <room_id> - Get all users in a specific room (That you are in)
             """)
 
     # Register as a user
@@ -111,13 +113,14 @@ def commands(msg):
             return "Deletion successful"
 
     elif command[0] == "/getRooms":
-        get_all_rooms()
+        for room in get_all_rooms().json():
+            print("id: {}   name: {}".format(room["id"], room["name"]))
 
     elif command[0] == "/getRoomUsers": # <room_id>
-        get_all_room_users(command[1])
+        for user in get_all_room_users(command[1]):
+            print("id: {}".format(user["id"]))
 
-    elif command[0] == "/getRoomMessages": # <room_id>
-        get_all_room_messages(command[1])
+
 
     else:
         print("Command does not exist")
@@ -141,11 +144,11 @@ def send_message():
         running = False
 
 def get_room(wanted_room_id):
-    return requests.get("{}/api/room/{}".format(api_url, wanted_room_id), json={"user_id": user_id}).json()
+    return requests.get("{}/api/room/{}".format(api_url, wanted_room_id), json={"user_id": user_id})
 
 
 def get_user(wanted_user_id):
-    return requests.get("{}/api/user/{}".format(api_url, wanted_user_id), json={"user_id": user_id}).json()
+    return requests.get("{}/api/user/{}".format(api_url, wanted_user_id), json={"user_id": user_id})
 
 
 def get_all_users():
@@ -155,10 +158,7 @@ def get_all_rooms():
     return requests.get("{}/api/rooms".format(api_url), json={"user_id": user_id})
 
 def get_all_room_users(wanted_room_id):
-    return requests.get("{}/api/room/{}/users".format(api_url, wanted_room_id), json={"user_id": user_id})
-
-def get_all_room_messages(wanted_room_id):
-    return requests.get("{}/api/room/{}/messages".format(api_url, wanted_room_id), json={"user_id": user_id})
+    return requests.get("{}/api/room/{}/users".format(api_url, wanted_room_id), json={"user_id": user_id}).json()["users"]
 
 def receive_message():
     global running
