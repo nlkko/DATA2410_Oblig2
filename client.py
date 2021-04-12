@@ -34,8 +34,6 @@ def commands(msg):
         else:
             print("Command does not exist")
 """
-def username_of_id(wanted_user_id):
-    return requests.get("{}/api/user/{}".format(api_url, wanted_user_id), json={"user_id ": user_id})["username"]
 
 def send_message():
     try:
@@ -47,22 +45,22 @@ def send_message():
     except:
         print("send_message ended")
 
-def recieve_message():
-    new_message_array = requests.get("{}/api/room/{}/messages".format(api_url, room_id), json={"user_id": user_id})
+def get_user(wanted_user_id):
+    return requests.get("{}/api/user/{}".format(api_url, wanted_user_id), json={"user_id": user_id}).json()
+
+def receive_message():
+    new_message_array = requests.get("{}/api/room/{}/messages".format(api_url, room_id), json={"user_id": user_id}).json()
     old_message_array = []
-    
-    try:
-        while True:
-            # Finner bare de nye meldingene
-            new_messages = [msg for msg in new_message_array if msg not in old_message_array]
-            old_message_array = new_message_array
-            time.sleep(0.5)
 
+    while True:
+        # Finner bare de nye meldingene
+        new_messages = [msg for msg in new_message_array if msg not in old_message_array]
+        old_message_array = new_message_array
+        time.sleep(0.5)
+
+        if new_message_array != []:
             for msg in new_messages:
-                print(username_of_id(msg["id"]) +": "+msg["message"])
+                print(get_user(msg["user_id"])["username"] +": " + msg["message"])
 
-    except:
-        print("recieve_message ended")
-
-send_thread = threading.Thread(target= recieve_message)
+send_thread = threading.Thread(target= receive_message)
 send_thread.start()
