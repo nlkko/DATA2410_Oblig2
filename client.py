@@ -5,13 +5,14 @@ import sys
 import time
 
 api_url = sys.argv[1]
-user_id = None
-room_id = "d45581f3a63f4b0a"
+user_id = "d45581f3a63f4b0b"
+room_id = None
 running = True
 
 
 def commands(msg):
     global user_id
+    global room_id
 
     if msg[0] != "/":
         return
@@ -42,15 +43,29 @@ def commands(msg):
 
     # Join a room as a registered user
     elif command[0] == "/join":  # <room_id>
-        return
+        try:
+            req = requests.get("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
+            room_id = req.json()["id"]
+            receive_thread = threading.Thread(target=receive_message)
+            receive_thread.start()
+            print("Changed room to {}".format(get_room(command[1])["name"]))
+
+        except:
+            print("\nSyntax or room_id is not valid. Type /help for more info")
+            if req.status_code == 404:
+                print("Room does not exist")
+            elif req.status_code == 400:
+                print("No provided user id")
 
     # Create a room
     elif command[0] == "/create":  # <room_name>
-        return
+        req = requests.post("{}/api/rooms".format(api_url), json={"user_id": user_id, "name": command[1]})
+        print(command[1] +" "+ req.json()["id"])
+        print("Created a room with name: {} and id: {}".format(command[1], req.json()["id"]))
+        
 
     else:
         print("Command does not exist")
-
 
 def send_message():
     global running
@@ -70,14 +85,14 @@ def send_message():
         print("Program closed")
         running = False
 
+def get_room(wanted_room_id):
+    return requests.get("{}/api/room/{}".format(api_url, wanted_room_id), json={"user_id": user_id}).json()
 
 def get_user(wanted_user_id):
     return requests.get("{}/api/user/{}".format(api_url, wanted_user_id), json={"user_id": user_id}).json()
 
-
 def get_all_users():
     return requests.get("{}/api/users".format(api_url), json={"user_id": user_id})
-
 
 def receive_message():
     global running
@@ -104,6 +119,8 @@ def start():
     print("Hello, welcome to wRESTling Bots Chat service")
     print("For access login with user id or create a user")
     print("Type /help for info")
+    print()
+    print()
     inp = None
     try:
         inp = input("Ignore for now\n")
@@ -111,8 +128,8 @@ def start():
     except:
         print("Program stopped")
 
-    threading.Thread(target=receive_message).start()
-    threading.Thread(target=send_message).start()
+    send_thread = threading.Thread(target=send_message)
+    send_thread.start()
 
 
 if __name__ == "__main__":

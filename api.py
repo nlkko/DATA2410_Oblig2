@@ -131,7 +131,7 @@ def roo():
             abort(400)
         new_room = {"id": uuid.uuid4().hex[:16], "name": name, "user_id": logged_in_user, "messages": [], "users": []}
         new_room["users"].append(logged_in_user)
-        users.append(new_room)
+        rooms.append(new_room)
         return jsonify(rooms)
 
 
