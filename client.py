@@ -33,12 +33,12 @@ def commands(msg):
             /getRoomUsers <room_id> - Get all users in a specific room (That you are in)
             """)
 
-    # Register as a user
+    # Register as an user
     elif command[0] == "/register":  # <username>
-        server_answer = requests.post("{}/api/users".format(api_url), json={"username": command[1]})
-        if server_answer.status_code == 200:
-            print(server_answer.json())
-            return "Registration successful"
+        request = requests.post("{}/api/users".format(api_url), json={"username": command[1]})
+        if request.status_code == 200:
+            user_id = request.json()["id"]
+            return "Registration successful \nYour user/login id is {}".format(user_id)
         else:
             return "An unexpected error occurred"
 
@@ -58,7 +58,7 @@ def commands(msg):
             user_id = None
             return "An unexpected error occurred"
 
-        # Join a room as a registered user
+    # Join a room as a registered user
     elif command[0] == "/join":  # <room_id>
         req = None
         try:
@@ -78,6 +78,7 @@ def commands(msg):
             elif req.status_code == 400:
                 print("No provided user id")
 
+
     # Create a room
     elif command[0] == "/create":  # <room_name>
         req = None
@@ -90,7 +91,7 @@ def commands(msg):
 
     # Delete user
     elif command[0] == "/delete_user":
-        request = requests.delete("{}/api/user/{}".format(api_url, user_id), json={"user_id": user_id})
+        request = requests.delete("{}/api/user/{}".format(api_url, command[1]), json={"user_id": user_id})
         if request.status_code == 404:
             return "Invalid user id"
         elif request.status_code == 400:
@@ -102,7 +103,7 @@ def commands(msg):
 
     # Delete room
     elif command[0] == "/delete_room":
-        request = requests.delete("{}/api/room/{}".format(api_url, room_id), json={"user_id": user_id})
+        request = requests.delete("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
         if request.status_code == 404:
             return "Invalid room id"
         elif request.status_code == 400:
@@ -125,14 +126,15 @@ def commands(msg):
     else:
         print("Command does not exist")
 
+
 def send_message():
     global running
     try:
         while running:
-            msg = input("Write a message: \n")
+            msg = input("Write a message or command: \n")
 
             if msg[0] == "/":
-                commands(msg)
+                print(commands(msg))
             else:
                 requests.post("{}/api/room/{}/{}/messages".format(api_url, room_id, user_id),
                               json={"user_id": user_id, "message": msg})
@@ -142,6 +144,7 @@ def send_message():
     except EOFError:
         print("Program closed")
         running = False
+
 
 def get_room(wanted_room_id):
     return requests.get("{}/api/room/{}".format(api_url, wanted_room_id), json={"user_id": user_id})
@@ -154,8 +157,10 @@ def get_user(wanted_user_id):
 def get_all_users():
     return requests.get("{}/api/users".format(api_url), json={"user_id": user_id})
 
+
 def get_all_rooms():
     return requests.get("{}/api/rooms".format(api_url), json={"user_id": user_id})
+
 
 def get_all_room_users(wanted_room_id):
     return requests.get("{}/api/room/{}/users".format(api_url, wanted_room_id), json={"user_id": user_id}).json()["users"]
@@ -187,16 +192,8 @@ def start():
     print("Hello, welcome to wRESTling Bots Chat service")
     print("For access login with user id or create a user")
     print("Type /help for info")
-    inp = None
-    try:
-        inp = input("Ignore for now\n")
-        commands(inp)
-    except:
-        print("Program stopped")
-
     send_thread = threading.Thread(target=send_message)
     send_thread.start()
-    
 
 
 if __name__ == "__main__":
