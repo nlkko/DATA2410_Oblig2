@@ -122,6 +122,18 @@ def commands(msg):
             for user in get_all_room_users(command[1]).json():
                 return_string += ("id: {}\n".format(user))
             return return_string
+        
+        elif command[0] == "/get_all_room_messages": # <room_id>
+            r = get_all_room_messages(command[1]).json()
+            for msg in r:
+                user = get_user(msg["user_id"]).json()["username"]
+                print("name: {}     message: {}".format(user, msg["message"]))
+
+        elif command[0] == "/get_all_user_messages": # <room_id>
+            r = get_all_user_messages(command[1]).json()
+            for msg in r:
+                user = get_user(msg["user_id"]).json()["username"]
+                print("name: {}     message: {}".format(user, msg["message"]))
 
     else:
         return "Command does not exist"
@@ -147,8 +159,11 @@ def get_all_room_users(wanted_room_id):
     return requests.get("{}/api/room/{}/users".format(api_url, wanted_room_id), json={"user_id": user_id})
 
 
-# def get_all_room_messages(wanted_room_id):
-#    return requests.get("{}/api/room/{}/messages".format(api_url, wanted_room_id), json={"user_id": user_id})
+def get_all_room_messages(wanted_room_id):
+    return requests.get("{}/api/room/{}/messages".format(api_url, wanted_room_id), json={"user_id": user_id})
+
+def get_all_user_messages(wanted_room_id):
+    return requests.get("{}/api/room/{}/{}/messages".format(api_url, wanted_room_id, user_id), json={"user_id": user_id})
 
 
 def send_message():
