@@ -8,12 +8,14 @@ user_id = None
 room_id = None
 running = True
 old_message_array = []
+first_time_thread = 0
 
 
 def commands(msg):
     global user_id
     global room_id
     global old_message_array
+    global first_time_thread
 
     if msg[0] != "/":
         return
@@ -29,7 +31,7 @@ def commands(msg):
             /create <room_name> - Create a room with the given name
             """)
 
-    # Register as an user
+    # Register as a user
     elif command[0] == "/register":  # <username>
         server_answer = requests.post("{}/api/users".format(api_url), json={"username": command[1]})
         if server_answer.status_code == 200:
@@ -61,6 +63,10 @@ def commands(msg):
             req = requests.get("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
             room_id = req.json()["id"]
             old_message_array = []
+            if first_time_thread == 0:
+                first_time_thread = 1
+                receive_thread = threading.Thread(target=receive_message)
+                receive_thread.start()
             print("Changed room to {}".format(get_room(command[1])["name"]))
 
         except:
@@ -104,9 +110,17 @@ def commands(msg):
         elif request.status_code == 200:
             return "Deletion successful"
 
+    elif command[0] == "/getRooms":
+        get_all_rooms()
+
+    elif command[0] == "/getRoomUsers": # <room_id>
+        get_all_room_users(command[1])
+
+    elif command[0] == "/getRoomMessages": # <room_id>
+        get_all_room_messages(command[1])
+
     else:
         print("Command does not exist")
-
 
 def send_message():
     global running
@@ -126,7 +140,6 @@ def send_message():
         print("Program closed")
         running = False
 
-
 def get_room(wanted_room_id):
     return requests.get("{}/api/room/{}".format(api_url, wanted_room_id), json={"user_id": user_id}).json()
 
@@ -138,6 +151,14 @@ def get_user(wanted_user_id):
 def get_all_users():
     return requests.get("{}/api/users".format(api_url), json={"user_id": user_id})
 
+def get_all_rooms():
+    return requests.get("{}/api/rooms".format(api_url), json={"user_id": user_id})
+
+def get_all_room_users(wanted_room_id):
+    return requests.get("{}/api/room/{}/users".format(api_url, wanted_room_id), json={"user_id": user_id})
+
+def get_all_room_messages(wanted_room_id):
+    return requests.get("{}/api/room/{}/messages".format(api_url, wanted_room_id), json={"user_id": user_id})
 
 def receive_message():
     global running
@@ -175,8 +196,7 @@ def start():
 
     send_thread = threading.Thread(target=send_message)
     send_thread.start()
-    receive_thread = threading.Thread(target=receive_message)
-    receive_thread.start()
+    
 
 
 if __name__ == "__main__":
