@@ -5,13 +5,19 @@ import sys
 import time
 
 api_url = sys.argv[1]
-user_id = "d45581f3a63f4b0b"
+user_id = None
 room_id = "d45581f3a63f4b0a"
 running = True
 
 
 def commands(msg):
+    global user_id
+
+    if msg[0] != "/":
+        return
+
     command = msg.split(' ')
+
     # Get a list of all commands
     if command[0] == "/help":
         return
@@ -22,7 +28,17 @@ def commands(msg):
 
     # Login as a user
     elif command[0] == "/login":  # <user_id>
-        return
+        user_id = msg[1]
+        server_users = get_all_users()
+        if server_users.status_code == 404:
+            user_id = None
+            return "Invalid user id"
+        elif server_users.status_code == 400:
+            return "No provided user id"
+        elif server_users.status_code == 200:
+            return ""
+        else:
+            return "An unexpected error occurred"
 
     # Join a room as a registered user
     elif command[0] == "/join":  # <room_id>
@@ -34,11 +50,6 @@ def commands(msg):
 
     else:
         print("Command does not exist")
-
-
-def check_input(inp):
-    if inp[0] == "/":
-        return commands(inp)
 
 
 def send_message():
@@ -62,6 +73,10 @@ def send_message():
 
 def get_user(wanted_user_id):
     return requests.get("{}/api/user/{}".format(api_url, wanted_user_id), json={"user_id": user_id}).json()
+
+
+def get_all_users():
+    return requests.get("{}/api/users".format(api_url), json={"user_id": user_id})
 
 
 def receive_message():
@@ -91,7 +106,8 @@ def start():
     print("Type /help for info")
     inp = None
     try:
-        inp = input("Ignore for now")
+        inp = input("Ignore for now\n")
+        commands(inp)
     except:
         print("Program stopped")
 
