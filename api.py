@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_restful import Api, abort
 import uuid
-import requests
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
