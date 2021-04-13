@@ -1,7 +1,7 @@
 import threading
 import sys
 import time
-from bots_copy import *
+from bots import *
 
 api_url = sys.argv[1]
 user_id = None
@@ -103,8 +103,9 @@ def commands(msg):
         elif command[0] == "/join":  # <room_id>
             req = None
             try:
-                req = requests.post("{}/api/room/{}/users".format(api_url, room_id), json={"user_id": user_id})
+                req = requests.get("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
                 room_id = req.json()["id"]
+                requests.post("{}/api/room/{}/users".format(api_url, room_id), json={"user_id": user_id})
                 old_message_array = []
                 if first_time_thread == 0:
                     first_time_thread = 1

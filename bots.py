@@ -1,4 +1,6 @@
 import requests
+import random
+import uuid
 
 """
 ------ Krav til botene -----
@@ -51,18 +53,31 @@ def login(name, api_url):
     else:
         return "/register " + bot_name
 
+def join(api_url):
+    request = requests.get("{}/api/rooms".format(api_url), json={"user_id": bot_id}).json()
+    rooms = []
+    for room in request:
+        rooms.append(room["id"])
 
-def join():
-    return
+    print(rooms)
 
+    if random.random() <= 0.8:
+        room = "/join "+ random.choice(rooms)
+        print(room)
+        return room
+    else:
+        return "/create " + uuid.uuid4().hex[:4]
 
 def bot_message():
     global in_room
     global bot_name
-    msg = None
+    msg = "AAAAAA"
 
     print(bot_name)
     if bot_name == "Bot_Tobias":
+        if not in_room:
+            in_room = True
+            return join("http://127.0.0.1:5000/")
         return msg
 
     elif bot_name == "Bot_William":
