@@ -1,8 +1,7 @@
 import threading
-import requests
 import sys
 import time
-from bots_copy import *
+from bots import *
 
 api_url = sys.argv[1]
 user_id = None
@@ -275,6 +274,8 @@ except IndexError:
     print(commands("/info"))
 
 if bot_name is not None:
-    commands(login(bot_name, api_url))
+    login = login(bot_name, api_url)
+    if login:
+        commands(login)
 
 threading.Thread(target=send_message()).start()
