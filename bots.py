@@ -73,14 +73,31 @@ def bot_message():
     global bot_name
     msg = "AAAAAA"
 
-    print(bot_name)
-    if bot_name == "Bot_Tobias":
-        if not in_room:
+    if not in_room:
             in_room = True
             return join("http://127.0.0.1:5000/")
+
+    print(bot_name)
+    if bot_name == "Bot_Tobias":
+        messages = [
+            "樂高生化戰士 是樂高積木由",
+            "故事載體在2003年時變為小說和漫畫兩種",
+            "並由樂高的新系列《英雄工廠》",
+            "년에 처음으로 만들어졌으며"
+        ]
+
+        msg = random.choice(messages)
         return msg
 
     elif bot_name == "Bot_William":
+        messages = [
+            "I used to ride a unicycle as a kid",
+            "My favorite song is Bohemian rhapsody by Queen",
+            "My hair is long and lushy, like olive oil",
+            "As a kid my favorite show was Caillou"
+        ]
+
+        msg = random.choice(messages)
         return msg
 
     elif bot_name == "Bot_Adrian":
