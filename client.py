@@ -7,6 +7,7 @@ api_url = sys.argv[1]
 user_id = None
 room_id = None
 running = True
+leaving = False
 bot_name = None
 bot_names = ["bot1"]
 old_message_array = []
@@ -17,6 +18,7 @@ def commands(msg):
     global user_id
     global room_id
     global running
+    global leaving
     global old_message_array
     global first_time_thread
 
@@ -94,7 +96,9 @@ def commands(msg):
             if room_id is None:
                 return "You are not in a room\n"
 
-            return "Leaving current room does not work"
+            leaving = True
+            room_id = None
+            return "Leaving current room"
 
         # Join a room as a registered user
         elif command[0] == "/join":  # <room_id>
@@ -200,6 +204,9 @@ def get_all_user_messages(wanted_room_id):
 
 def send_message():
     global running
+    global leaving
+    global old_message_array
+    global first_time_thread
     try:
         while running:
             msg = None
@@ -229,6 +236,13 @@ def send_message():
         print("Program closed")
         running = False
 
+    if leaving:
+        old_message_array = []
+        first_time_thread = 1
+        running = True
+        threading.Thread(target=send_message).start()
+        leaving = False
+
 
 def receive_message():
     global running
@@ -247,6 +261,8 @@ def receive_message():
             if new_messages:
                 for msg in new_messages:
                     print("            " + get_user(msg["user_id"]).json()["username"] + ": " + msg["message"])
+    except ValueError:
+        print("")
     except:
         running = False
         print("receiving messages stopped")
