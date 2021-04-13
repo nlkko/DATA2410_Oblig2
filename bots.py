@@ -17,7 +17,6 @@ message they want to send)
 """
 bot_id = "admin"
 bot_name = None
-in_user = False
 in_room = False
 bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
 
@@ -30,11 +29,10 @@ message-phase # Send message to the different rooms
 
 
 def login(name, api_url):
-    global in_user
     global bot_id
     global bot_name
 
-    if name not in bot_name:
+    if name not in bot_names:
         return False
 
     request = requests.get("{}/api/users".format(api_url), json={"user_id": bot_id}).json()
@@ -46,7 +44,6 @@ def login(name, api_url):
             bot_id = user["id"]
             break
 
-    in_user = True
     bot_name = name
 
     if exist:
@@ -59,26 +56,22 @@ def join():
     return
 
 
-def bot_message(bot):
-    global in_user
+def bot_message():
     global in_room
+    global bot_name
     msg = None
 
-    if bot == "Bot_Tobias":
-        # Will create a Bot_Tobias user if it doesn't exist, else will login to Bot_Tobias
-        if not in_user:
-            print()
-        # Will check all rooms the bot is in and join one
-
+    print(bot_name)
+    if bot_name == "Bot_Tobias":
         return msg
 
-    elif bot == "Bot_William":
+    elif bot_name == "Bot_William":
         return msg
 
-    elif bot == "Bot_Adrian":
+    elif bot_name == "Bot_Adrian":
         return msg
 
-    elif bot == "Bot_Eirik":
+    elif bot_name == "Bot_Eirik":
         return msg
 
     else:

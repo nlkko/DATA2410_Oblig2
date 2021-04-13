@@ -1,7 +1,7 @@
 import threading
 import sys
 import time
-from bots import *
+from bots_copy import *
 
 api_url = sys.argv[1]
 user_id = None
@@ -208,16 +208,14 @@ def send_message():
     global first_time_thread
     try:
         while running:
-            msg = None
             if bot_name is None:
                 if room_id is None:
                     msg = input("Write a command: \n")
                 else:
                     msg = input("Write a message or command: \n")
             else:
-                time.sleep(3)
-                print()
-                print(bot_message("hei"))
+                msg = bot_message()
+                time.sleep(2)
 
             if msg[0] == "/":
                 print("\n            " + commands(msg) + "\n")
@@ -229,7 +227,7 @@ def send_message():
                 print("You are not in room use /help for info")
 
     except IndexError:
-        print("Message can not be empty")
+        print("Message can not be empty\n")
         threading.Thread(target=send_message).start()
     except EOFError:
         print("Program closed")
@@ -277,5 +275,8 @@ if bot_name is not None:
     login = login(bot_name, api_url)
     if login:
         commands(login)
+    else:
+        print("Invalid bot name")
+        sys.exit()
 
 threading.Thread(target=send_message()).start()
