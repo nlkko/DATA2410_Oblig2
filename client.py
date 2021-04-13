@@ -7,6 +7,8 @@ api_url = sys.argv[1]
 user_id = None
 room_id = None
 running = True
+bot_name = None
+bot_names = ["bot1"]
 old_message_array = []
 first_time_thread = 0
 
@@ -14,6 +16,7 @@ first_time_thread = 0
 def commands(msg):
     global user_id
     global room_id
+    global running
     global old_message_array
     global first_time_thread
 
@@ -25,7 +28,10 @@ def commands(msg):
     # Get a list of all commands
     if command[0] == "/help":
         return ("""
-            /help - provides info of all commands
+            /help - Provides info of all commands
+            /exit - Exits program
+            /info - Gives info about chatting service
+            /leave - Leaves current room
             /register <username> - Registers a user
             /login <user_id> - Login as a user
             /join <room_id> - Join a specific room with room_id
@@ -34,7 +40,23 @@ def commands(msg):
             /delete_room <room_id> - Deletes room with giver room_id, has to be room creator
             /get_rooms - Get all rooms
             /get_room_users <room_id> - Get all users in a specific room (That you are in)
+            /get_all_room_messages <room_id> - Get all messages in a room
+            /get_all_user_messages <room_id> - Get all messages in a room that you have posted
             """)
+
+    # Exits program
+    elif command[0] == "/exit":
+        running = False
+        return "Now exiting program"
+
+    # Gives info about service
+    elif command[0] == "/info":
+        return ("""
+            Hello, welcome to wRESTling Bots Chat service.
+            To get started login or create a user.
+            Then, to start chatting join a room.
+            For more help and a list of commands type /help.
+        """)
 
     # Register as an user
     elif command[0] == "/register":
@@ -67,8 +89,15 @@ def commands(msg):
 
     elif user_id is not None:
 
+        # Leaves current room
+        if command[0] == "/leave":
+            if room_id is None:
+                return "You are not in a room\n"
+
+            return "Leaving current room does not work"
+
         # Join a room as a registered user
-        if command[0] == "/join":  # <room_id>
+        elif command[0] == "/join":  # <room_id>
             req = None
             try:
                 req = requests.get("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
@@ -78,14 +107,13 @@ def commands(msg):
                     first_time_thread = 1
                     receive_thread = threading.Thread(target=receive_message)
                     receive_thread.start()
+
                 return "Changed room to {}".format(get_room(command[1]).json()["name"])
 
             except:
                 print("\nSyntax or room_id is not valid. Type /help for more info")
                 if req.status_code == 404:
                     return "Room does not exist"
-                elif req.status_code == 400:
-                    return "No provided user id"
 
         # Create a room
         elif command[0] == "/create":  # <room_name>
@@ -98,6 +126,7 @@ def commands(msg):
             if request.status_code == 401:
                 return "You are not permitted to delete this user"
             elif request.status_code == 200:
+                user_id = None
                 return "Deletion successful and you have been logged out"
 
         # Delete room
@@ -106,7 +135,6 @@ def commands(msg):
             if request.status_code == 401:
                 return "You are not permitted to delete this room"
             elif request.status_code == 200:
-                user_id = None
                 return "Deletion successful"
 
         # Gets rooms
@@ -120,21 +148,23 @@ def commands(msg):
         elif command[0] == "/get_room_users":  # <room_id>
             return_string = ""
             for user in get_all_room_users(command[1]).json():
-                return_string += ("id: {}\n".format(user))
+                return_string += ("id: {}".format(user))
             return return_string
-        
-        elif command[0] == "/get_all_room_messages": # <room_id>
+
+        elif command[0] == "/get_all_room_messages":  # <room_id>
             r = get_all_room_messages(command[1]).json()
             for msg in r:
                 user = get_user(msg["user_id"]).json()["username"]
                 print("name: {}     message: {}".format(user, msg["message"]))
 
-        elif command[0] == "/get_all_user_messages": # <room_id>
+        elif command[0] == "/get_all_user_messages":  # <room_id>
             r = get_all_user_messages(command[1]).json()
             for msg in r:
                 user = get_user(msg["user_id"]).json()["username"]
                 print("name: {}     message: {}".format(user, msg["message"]))
 
+    elif user_id is None:
+        return "Your are not logged in or command does not exist"
     else:
         return "Command does not exist"
 
@@ -162,21 +192,36 @@ def get_all_room_users(wanted_room_id):
 def get_all_room_messages(wanted_room_id):
     return requests.get("{}/api/room/{}/messages".format(api_url, wanted_room_id), json={"user_id": user_id})
 
+
 def get_all_user_messages(wanted_room_id):
-    return requests.get("{}/api/room/{}/{}/messages".format(api_url, wanted_room_id, user_id), json={"user_id": user_id})
+    return requests.get("{}/api/room/{}/{}/messages".format(api_url, wanted_room_id, user_id),
+                        json={"user_id": user_id})
 
 
 def send_message():
     global running
     try:
         while running:
-            msg = input("Write a message or command: \n")
+            msg = None
+            if bot_name is None:
+                if room_id is None:
+                    msg = input("Write a command: \n")
+                else:
+                    msg = input("Write a message or command: \n")
+            else:
+                time.sleep(3)
+                print()
+                # msg = get_action()
 
             if msg[0] == "/":
-                print(commands(msg))
-            else:
+                print("\n            " + commands(msg) + "\n")
+                time.sleep(1)
+            elif room_id is not None and user_id is not None:
                 requests.post("{}/api/room/{}/{}/messages".format(api_url, room_id, user_id),
                               json={"user_id": user_id, "message": msg})
+            else:
+                print("You are not in room use /help for info")
+
     except IndexError:
         print("Message can not be empty")
         threading.Thread(target=send_message).start()
@@ -191,7 +236,6 @@ def receive_message():
     old_message_array = []
 
     try:
-
         while running:
             # Finner bare de nye meldingene
             new_message_array = requests.get("{}/api/room/{}/messages".format(api_url, room_id),
@@ -202,19 +246,18 @@ def receive_message():
 
             if new_messages:
                 for msg in new_messages:
-                    print(get_user(msg["user_id"]).json()["username"] + ": " + msg["message"])
+                    print("            " + get_user(msg["user_id"]).json()["username"] + ": " + msg["message"])
     except:
         running = False
-        print("receive_thread stopped")
+        print("receiving messages stopped")
 
 
-def start():
-    print("Hello, welcome to wRESTling Bots Chat service")
-    print("For access login with user id or create a user")
-    print("Type /help for info")
-    send_thread = threading.Thread(target=send_message)
-    send_thread.start()
+try:
+    bot_name = sys.argv[2]
+    if bot_name not in bot_names:
+        print("Invalid bot name, exiting...")
+        sys.exit()
+except IndexError:
+    print(commands("/info"))
 
-
-if __name__ == "__main__":
-    start()
+threading.Thread(target=send_message()).start()
