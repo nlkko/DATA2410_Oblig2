@@ -16,7 +16,7 @@ room 42) and then asks for input to that action where applicable (for example,
 if the action is to post a message to room 42, allow the user to type in the
 message they want to send)
 """
-user_id = "admin"
+bot_id = "admin"
 in_user = False
 in_room = False
 
@@ -27,24 +27,28 @@ room-phase # Create a new room or join
 message-phase # Send message to the different rooms
 """
 
-def user_phase(bot_name):
+def login(bot_name):
     global in_user
+    global bot_id
 
     r = requests.get("{}/api/users".format(api_url), json={"user_id": user_id}).json()
     exist = False
-    id = None
+
     for user in r:
         if user["username"] == bot_name:
             exist = True
-            id = user["id"]
+            bot_id = user["id"]
             break
     
     in_user = True
+
     if exist:
-        return "/login " + id
+        return "/login " + bot_id
     else:
         return "/register " + bot_name
 
+def join():
+    return
 
 def bot_message(bot):
     global in_user
@@ -52,7 +56,11 @@ def bot_message(bot):
 
     if bot == "Bot_Tobias":
         # Will create a Bot_Tobias user if it doesn't exist, else will login to Bot_Tobias
-        
+        if not in_user:
+            login(bot)
+
+        # Will check all rooms the bot is in and join one
+
         return msg
 
     if bot == "Bot_William":

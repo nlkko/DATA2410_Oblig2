@@ -10,7 +10,7 @@ room_id = None
 running = True
 leaving = False
 bot_name = None
-bot_names = ["bot1"]
+bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
 old_message_array = []
 first_time_thread = 0
 
@@ -107,6 +107,7 @@ def commands(msg):
             try:
                 req = requests.get("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
                 room_id = req.json()["id"]
+                requests.post("{}/api/room/{}/users".format(api_url, room_id), json={"user_id": user_id})
                 old_message_array = []
                 if first_time_thread == 0:
                     first_time_thread = 1
