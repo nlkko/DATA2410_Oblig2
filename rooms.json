@@ -1,24 +1,26 @@
-{
-    "id": "d45581f3a63f4b0a",
-    "name": "Test_Room",
-    "user_id": "d45581f3a63f4b0b",
-    "users": ["d45581f3a63f4b0b", "f41cda46ec974d9e", "5a93949a308b4570"],
-    "messages": [
-        {
-            "user_id": "5a93949a308b4570",
-            "message": "Hey mister"
-        },
-        {
-            "user_id": "f41cda46ec974d9e",
-            "message": "Hola Señor"
-        },
-        {
-            "user_id": "d45581f3a63f4b0b",
-            "message": "Nǐ hǎo, xiānshēng"
-        },
-        {
-            "user_id": "5a93949a308b4570",
-            "message": "亂數假文產生器"
-        }
-    ]
-}
+[
+    {
+        "id": "d45581f3a63f4b0a",
+        "name": "Test_Room",
+        "user_id": "d45581f3a63f4b0b",
+        "users": ["d45581f3a63f4b0b", "f41cda46ec974d9e", "5a93949a308b4570"],
+        "messages": [
+            {
+                "user_id": "5a93949a308b4570",
+                "message": "Hey mister"
+            },
+            {
+                "user_id": "f41cda46ec974d9e",
+                "message": "Hola Señor"
+            },
+            {
+                "user_id": "d45581f3a63f4b0b",
+                "message": "Nǐ hǎo, xiānshēng"
+            },
+            {
+                "user_id": "5a93949a308b4570",
+                "message": "亂數假文產生器"
+            }
+        ]
+    }
+]
