@@ -2,6 +2,7 @@ import threading
 import requests
 import sys
 import time
+from bots import *
 
 api_url = sys.argv[1]
 user_id = None
@@ -218,7 +219,7 @@ def send_message():
             else:
                 time.sleep(3)
                 print()
-                # msg = get_action()
+                print(bot_message("hei"))
 
             if msg[0] == "/":
                 print("\n            " + commands(msg) + "\n")

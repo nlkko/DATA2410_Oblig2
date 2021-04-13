@@ -50,7 +50,7 @@ def usr():
         new_user = {"id": uuid.uuid4().hex[:16], "username": request.json["username"]}
         users.append(new_user)
         write_json(users, "users.json")
-        return jsonify(users)
+        return jsonify(new_user)
 
 
 # Chat-Rooms:
