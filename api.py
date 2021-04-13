@@ -1,48 +1,22 @@
 from flask import Flask, request, jsonify
 from flask_restful import Api, abort
 import uuid
+import json
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 api = Api(app)
 
-users = [
-    {'id': "d45581f3a63f4b0b", 'username': 'Fire'},
-    {'id': "f41cda46ec974d9e", 'username': 'Omelas'},
-    {'id': "5a93949a308b4570", 'username': 'Dhalgren'}
-]
+# Reading the JSON files
+with open('users.json', encoding='utf-8') as f:
+    users = json.load(f)
 
-rooms = [
-    {'id': "d45581f3a63f4b0a",
-     "name": "Test",
-     "user_id": "d45581f3a63f4b0b",
-     "users": ["d45581f3a63f4b0b", "f41cda46ec974d9e", "5a93949a308b4570"],
-     "messages": [
-         {
-             "user_id": "5a93949a308b4570",
-             "message": "Hey mister"
-         },
-         {
-             "user_id": "f41cda46ec974d9e",
-             "message": "Hey fister"
-         }
-     ]},
-    {'id': "f41cda46ec974d9f",
-     "name": "Test2",
-     "user_id": "d45581f3a63f4b0b",
-     "users": [""],
-     "messages": [
-         {
-             "user_id": "d45581f3a63f4b0b",
-             "message": "Hello"
-         },
-         {
-             "user_id": "f41cda46ec974d9e",
-             "message": "Hey there"
-         }
-     ]},
-]
+with open('rooms.json', encoding='utf-8') as f:
+    rooms = json.load(f)
 
+def write_json(object, file):
+    with open(file, 'w', encoding='utf-8') as f:
+        json.dump(object, f)
 
 # Checks if given id exists then returns the object, if not throws an exception
 def return_selected(search, objects, search_type="id"):
@@ -75,6 +49,7 @@ def usr():
     if request.method == 'POST':
         new_user = {"id": uuid.uuid4().hex[:16], "username": request.json["username"]}
         users.append(new_user)
+        write_json(users, "users.json")
         return jsonify(users)
 
 
@@ -103,6 +78,7 @@ def usr_id(user_id):
             abort(401)
 
         users.remove(selected_user)
+        write_json(users, "users.json")
         return jsonify(users)
 
 
@@ -131,6 +107,7 @@ def roo():
         new_room = {"id": uuid.uuid4().hex[:16], "name": name, "user_id": logged_in_user, "messages": [], "users": []}
         new_room["users"].append(logged_in_user)
         rooms.append(new_room)
+        write_json(users, "users.json")
         return jsonify(new_room)
 
 
@@ -163,6 +140,7 @@ def roo_id(room_id):
     if request.method == "DELETE":
         if user_id == selected_room["user_id"]:
             rooms.remove(selected_room)
+            write_json(rooms, "rooms.json")
             return jsonify(rooms)
         else:
             abort(401)
@@ -190,6 +168,8 @@ def roo_usrs(room_id):
         # Checks if user is not already in the room
         if logged_user_id not in selected_room["users"]:
             selected_room["users"].append(logged_user_id)
+            write_json(rooms, "rooms.json")
+
         return jsonify(selected_room["users"])
 
 
@@ -281,6 +261,7 @@ def mess_user(room_id, user_id):
         # Adds message to room
         message = {"user_id": user_id, "message": in_message}
         selected_room["messages"].append(message)
+        write_json(rooms, "rooms.json")
         return jsonify(message)
 
 
