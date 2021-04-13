@@ -2,7 +2,7 @@ import threading
 import requests
 import sys
 import time
-from bots import *
+from bots_copy import *
 
 api_url = sys.argv[1]
 user_id = None
@@ -10,7 +10,6 @@ room_id = None
 running = True
 leaving = False
 bot_name = None
-bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
 old_message_array = []
 first_time_thread = 0
 
@@ -105,9 +104,8 @@ def commands(msg):
         elif command[0] == "/join":  # <room_id>
             req = None
             try:
-                req = requests.get("{}/api/room/{}".format(api_url, command[1]), json={"user_id": user_id})
+                req = requests.post("{}/api/room/{}/users".format(api_url, room_id), json={"user_id": user_id})
                 room_id = req.json()["id"]
-                requests.post("{}/api/room/{}/users".format(api_url, room_id), json={"user_id": user_id})
                 old_message_array = []
                 if first_time_thread == 0:
                     first_time_thread = 1
@@ -272,10 +270,11 @@ def receive_message():
 
 try:
     bot_name = sys.argv[2]
-    if bot_name not in bot_names:
-        print("Invalid bot name, exiting...")
-        sys.exit()
 except IndexError:
+    bot_name = None
     print(commands("/info"))
+
+if bot_name is not None:
+    commands(login(bot_name, api_url))
 
 threading.Thread(target=send_message()).start()

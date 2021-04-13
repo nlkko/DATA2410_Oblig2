@@ -1,6 +1,5 @@
 import requests
 
-
 """
 ------ Krav til botene -----
 ○ Register as a user once
@@ -17,8 +16,10 @@ if the action is to post a message to room 42, allow the user to type in the
 message they want to send)
 """
 bot_id = "admin"
+bot_name = None
 in_user = False
 in_room = False
+bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
 
 """
 phases:
@@ -27,47 +28,59 @@ room-phase # Create a new room or join
 message-phase # Send message to the different rooms
 """
 
-def login(bot_name):
+
+def login(name, api_url):
     global in_user
     global bot_id
+    global bot_name
 
-    r = requests.get("{}/api/users".format(api_url), json={"user_id": user_id}).json()
+    if name not in bot_name:
+        return False
+
+    request = requests.get("{}/api/users".format(api_url), json={"user_id": bot_id}).json()
     exist = False
 
-    for user in r:
-        if user["username"] == bot_name:
+    for user in request:
+        if user["username"] == name:
             exist = True
             bot_id = user["id"]
             break
-    
+
     in_user = True
+    bot_name = name
 
     if exist:
         return "/login " + bot_id
     else:
         return "/register " + bot_name
 
+
 def join():
     return
+
 
 def bot_message(bot):
     global in_user
     global in_room
+    msg = None
 
     if bot == "Bot_Tobias":
         # Will create a Bot_Tobias user if it doesn't exist, else will login to Bot_Tobias
         if not in_user:
-            login(bot)
-
+            print()
         # Will check all rooms the bot is in and join one
 
         return msg
 
-    if bot == "Bot_William":
+    elif bot == "Bot_William":
         return msg
 
-    if bot == "Bot_Adrian":
+    elif bot == "Bot_Adrian":
         return msg
 
-    if bot == "Bot_Eirik":
+    elif bot == "Bot_Eirik":
         return msg
+
+    else:
+        return "Invalid bot name"
+

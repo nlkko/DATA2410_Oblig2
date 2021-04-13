@@ -14,9 +14,11 @@ with open('users.json', encoding='utf-8') as f:
 with open('rooms.json', encoding='utf-8') as f:
     rooms = json.load(f)
 
-def write_json(object, file):
+
+def write_json(obj, file):
     with open(file, 'w', encoding='utf-8') as f:
-        json.dump(object, f)
+        json.dump(obj, f)
+
 
 # Checks if given id exists then returns the object, if not throws an exception
 def return_selected(search, objects, search_type="id"):
@@ -110,9 +112,9 @@ def roo():
         write_json(rooms, "rooms.json")
         return jsonify(new_room)
 
+
 @app.route("/api/rooms/<string:user_id>", methods=['GET'])
 def roo_us(user_id):
-    logged_in_user = None
     # Checks if logged in
     try:
         logged_in_user = return_selected(request.json["user_id"], users)["id"]
@@ -126,7 +128,7 @@ def roo_us(user_id):
     for room in rooms:
         if user_id in room["users"]:
             rooms_with_user.append(room)
-    
+
     return jsonify(rooms_with_user)
 
 
@@ -163,6 +165,7 @@ def roo_id(room_id):
             return jsonify(rooms)
         else:
             abort(401)
+
 
 # Room users:
 @app.route("/api/room/<string:room_id>/users", methods=['GET', 'POST'])
