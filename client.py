@@ -145,7 +145,7 @@ def commands(msg):
         elif command[0] == "/get_rooms":
             return_string = ""
             for room in get_all_rooms().json():
-                return_string += "id: {}   name: {}".format(room["id"], room["name"])
+                return_string += "id: {}   name: {}\n".format(room["id"], room["name"])
             return return_string
 
         # Gets all users in a room

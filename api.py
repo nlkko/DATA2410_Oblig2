@@ -107,7 +107,7 @@ def roo():
         new_room = {"id": uuid.uuid4().hex[:16], "name": name, "user_id": logged_in_user, "messages": [], "users": []}
         new_room["users"].append(logged_in_user)
         rooms.append(new_room)
-        write_json(users, "users.json")
+        write_json(rooms, "rooms.json")
         return jsonify(new_room)
 
 
