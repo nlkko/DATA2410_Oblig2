@@ -1,4 +1,5 @@
-{'id': "d45581f3a63f4b0a",
+{
+    "id": "d45581f3a63f4b0a",
     "name": "Test_Room",
     "user_id": "d45581f3a63f4b0b",
     "users": ["d45581f3a63f4b0b", "f41cda46ec974d9e", "5a93949a308b4570"],
@@ -19,5 +20,5 @@
             "user_id": "5a93949a308b4570",
             "message": "亂數假文產生器"
         }
-    ]}
-    ]}
+    ]
+}
