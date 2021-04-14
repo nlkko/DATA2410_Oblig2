@@ -46,9 +46,10 @@ def join():
         rooms.append(room["id"])
 
     if random.random() <= 1 / (len(rooms) + 1):
-        return "/create" + uuid.uuid4().hex[:4]
+        return "/create " + uuid.uuid4().hex[:4]
     else:
         room = "/join " + random.choice(rooms)
+        in_room = True
         return room
 
 
