@@ -217,11 +217,12 @@ def send_message():
             else:
                 msg = bot_message()
                 time.sleep(2)
+                print("Bot said: " + msg)
 
             if msg[0] == "/":
                 print("\n            " + commands(msg) + "\n")
                 time.sleep(1)
-            elif room_id is not None and user_id is not None:
+            elif room_id is not None:
                 requests.post("{}/api/room/{}/{}/messages".format(api_url, room_id, user_id),
                               json={"user_id": user_id, "message": msg})
             else:

@@ -2,37 +2,21 @@ import requests
 import random
 import uuid
 
-"""
------- Krav til botene -----
-○ Register as a user once
-○ Join an existing room and create a new one
-○ Post several messages in all the roms it's a part of and also fetch all
-messages in those rooms. Great bots respond to other messages. Lesser
-bots just post things. Both are welcome.
-○ Implement a basic user interface for a human to observe and optionally
-interact with the chat rooms. The user interface can be a simple terminal
-program or a web page that lets the user select which of the actions
-accessible in the API it wants to take (for example, fetch all messages from
-room 42) and then asks for input to that action where applicable (for example,
-if the action is to post a message to room 42, allow the user to type in the
-message they want to send)
-"""
 bot_id = "admin"
+url = None
 bot_name = None
 in_room = False
+leave_chance = 1
+exit_chance = 1
+messages_sent = 0
+total_messages_sent = 0
 bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
-
-"""
-phases:
-user-phase # Create a new user or login
-room-phase # Create a new room or join
-message-phase # Send message to the different rooms
-"""
 
 
 def login(name, api_url):
     global bot_id
     global bot_name
+    global url
 
     if name not in bot_names:
         return False
@@ -47,65 +31,111 @@ def login(name, api_url):
             break
 
     bot_name = name
-
+    url = api_url
     if exist:
         return "/login " + bot_id
     else:
         return "/register " + bot_name
 
-def join(api_url):
-    request = requests.get("{}/api/rooms".format(api_url), json={"user_id": bot_id}).json()
+
+def join():
+    global in_room
+    request = requests.get("{}/api/rooms".format(url), json={"user_id": bot_id}).json()
     rooms = []
     for room in request:
         rooms.append(room["id"])
 
-    print(rooms)
-
-    if random.random() <= 0.8:
-        room = "/join "+ random.choice(rooms)
-        print(room)
-        return room
+    if random.random() <= 1 / (len(rooms) + 1):
+        return "/create" + uuid.uuid4().hex[:4]
     else:
-        return "/create " + uuid.uuid4().hex[:4]
+        room = "/join " + random.choice(rooms)
+        return room
+
+
+# Will decide if bot leaves or exits
+def leave(chance):
+    if random.random() >= chance:
+        return True
+    else:
+        return False
+
 
 def bot_message():
     global in_room
     global bot_name
-    msg = "AAAAAA"
+    global leave_chance
+    global exit_chance
+    global messages_sent
+    global total_messages_sent
+
+    if leave(exit_chance):
+        return "/exit"
+    else:
+        exit_chance = 1 / (total_messages_sent + 1)
 
     if not in_room:
-            in_room = True
-            return join("http://127.0.0.1:5000/")
+        return join()
 
-    print(bot_name)
+    elif leave(leave_chance):
+        messages_sent = 0
+        leave_chance = -1
+        in_room = False
+        return "/leave"
+    else:
+        leave_chance = 1 / (messages_sent + 1)
+
     if bot_name == "Bot_Tobias":
         messages = [
             "樂高生化戰士 是樂高積木由",
             "故事載體在2003年時變為小說和漫畫兩種",
             "並由樂高的新系列《英雄工廠》",
-            "년에 처음으로 만들어졌으며"
+            "년에 처음으로 만들어졌으며",
+            "吃那个成寒鸡. 地牢里的金正"
         ]
 
-        msg = random.choice(messages)
-        return msg
+        messages_sent += 1
+        total_messages_sent += 1
+        return random.choice(messages)
 
     elif bot_name == "Bot_William":
         messages = [
             "I used to ride a unicycle as a kid",
             "My favorite song is Bohemian rhapsody by Queen",
             "My hair is long and lushy, like olive oil",
-            "As a kid my favorite show was Caillou"
+            "As a kid my favorite show was Caillou",
+            "Man, I love me some homemade pizza"
         ]
 
-        msg = random.choice(messages)
-        return msg
-
-    elif bot_name == "Bot_Adrian":
-        return msg
+        messages_sent += 1
+        total_messages_sent += 1
+        return random.choice(messages)
 
     elif bot_name == "Bot_Eirik":
-        return msg
+        messages = [
+            "Now I need to ponder my existence and ask myself if I'm truly real.",
+            "From time to time I do wonder what is the meaning of my existence.",
+            "Every other wednesday I take a trip in the forrest to check if my time has come.",
+            "Working in retail makes you appreciate the little things in life",
+            "Tomorrow will bring something new, so leave today as a memory.",
+            "Choosing to do nothing is still a choice, after all."
+        ]
 
-    else:
-        return "Invalid bot name"
+        messages_sent += 1
+        total_messages_sent += 1
+        leave_chance = 1 / (messages_sent + 1)
+        return random.choice(messages)
+
+    elif bot_name == "Bot_Adrian":
+        messages = [
+            "Chocolate covered crickets is my favorite snack.",
+            "Did you know it's not possible to convince a monkey to give you a banana by promising it infinite "
+            "bananas when they die.",
+            "I don’t respect anybody who can’t tell the difference between Pepsi and Coke.",
+            "Did you know I was on the Hindenburg when it crashed.",
+            "Various sea birds are elegant, but nothing is as elegant as a gliding pelican."
+        ]
+
+        messages_sent += 1
+        total_messages_sent += 1
+        return random.choice(messages)
 
