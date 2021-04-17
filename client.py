@@ -6,6 +6,8 @@ from bots import *
 api_url = sys.argv[1]
 user_id = None
 room_id = None
+
+# running is used in the while loops for threads, when set to false it stops the thread
 running = True
 leaving = False
 bot_name = None
@@ -47,6 +49,7 @@ def commands(msg):
 
     # Exits program
     elif command[0] == "/exit":
+        
         running = False
         return "Now exiting program"
 
@@ -71,6 +74,7 @@ def commands(msg):
     # Login as a user
     elif command[0] == "/login":  # <user_id>
         try:
+            # Checks if the user id is valid else throws an exception
             user_id = command[1]
             request = get_user(user_id)
         except IndexError:
@@ -108,6 +112,8 @@ def commands(msg):
                 room_id = req.json()["id"]
                 requests.post("{}/api/room/{}/users".format(api_url, room_id), json={"user_id": user_id})
                 old_message_array = []
+
+                # Resets the thread, if user has active receive thread, by stopping and starting it again
                 if first_time_thread == 0:
                     first_time_thread = 1
                     receive_thread = threading.Thread(target=receive_message)
@@ -202,7 +208,7 @@ def get_all_user_messages(wanted_room_id):
     return requests.get("{}/api/room/{}/{}/messages".format(api_url, wanted_room_id, user_id),
                         json={"user_id": user_id})
 
-
+# While loop waits for input, if the input contains "/" as the first symbol it launches the command method
 def send_message():
     global running
     global leaving
@@ -243,7 +249,6 @@ def send_message():
         leaving = False
         threading.Thread(target=send_message).start()
 
-
 def receive_message():
     global running
     global old_message_array
@@ -251,13 +256,15 @@ def receive_message():
 
     try:
         while running:
-            # Finner bare de nye meldingene
+            # Compares the previous messages the client has seen with the new messages that have come into the client.
+            # If you look at it like a venn diagram, we only want the complement of new_message_array, nothing else
             new_message_array = requests.get("{}/api/room/{}/messages".format(api_url, room_id),
                                              json={"user_id": user_id}).json()
             new_messages = new_message_array[(len(old_message_array)):]
             old_message_array = new_message_array
             time.sleep(0.5)
 
+            # If the complement of new_message_array contains any messages it prints them out
             if new_messages:
                 for msg in new_messages:
                     print("            " + get_user(msg["user_id"]).json()["username"] + ": " + msg["message"])
@@ -267,13 +274,14 @@ def receive_message():
         running = False
         print("receiving messages stopped")
 
-
+# Checks if a second argument is given, that indicates if it should run as a bot or not
 try:
     bot_name = sys.argv[2]
 except IndexError:
     bot_name = None
     print(commands("/info"))
 
+# Else it starts as a user client
 if bot_name is not None:
     login = login(bot_name, api_url)
     if login:

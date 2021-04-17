@@ -12,18 +12,19 @@ messages_sent = 0
 total_messages_sent = 0
 bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
 
-
 def login(name, api_url):
     global bot_id
     global bot_name
     global url
 
+    # Checks if the bot name exists 
     if name not in bot_names:
         return False
 
     request = requests.get("{}/api/users".format(api_url), json={"user_id": bot_id}).json()
     exist = False
 
+    # Checks if the bot is registered
     for user in request:
         if user["username"] == name:
             exist = True
@@ -35,6 +36,7 @@ def login(name, api_url):
     if exist:
         return "/login " + bot_id
     else:
+        # If its not registered it will create a user with its name
         return "/register " + bot_name
 
 
@@ -60,7 +62,8 @@ def leave(chance):
     else:
         return False
 
-
+# Goes through different phases: login, join/create room, and then finally send message.
+# Then depending on the bot name it sends different messages
 def bot_message():
     global in_room
     global bot_name
