@@ -6,8 +6,8 @@ bot_id = "admin"
 url = None
 bot_name = None
 in_room = False
-leave_chance = 1
-exit_chance = 1
+leave_chance = -1
+exit_chance = -1
 messages_sent = 0
 total_messages_sent = 0
 bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
@@ -55,7 +55,7 @@ def join():
 
 # Will decide if bot leaves or exits
 def leave(chance):
-    if random.random() >= chance:
+    if random.random() <= chance:
         return True
     else:
         return False
@@ -72,7 +72,7 @@ def bot_message():
     if leave(exit_chance):
         return "/exit"
     else:
-        exit_chance = (1 + total_messages_sent) / (5 + total_messages_sent)
+        exit_chance = (1 + total_messages_sent) / (50 + total_messages_sent)
 
     if not in_room:
         return join()
@@ -83,7 +83,7 @@ def bot_message():
         in_room = False
         return "/leave"
     else:
-        leave_chance = exit_chance = (1 + messages_sent) / (5 + messages_sent)
+        leave_chance = (1 + messages_sent) / (8 + messages_sent)
 
     if bot_name == "Bot_Tobias":
         messages = [
@@ -123,7 +123,6 @@ def bot_message():
 
         messages_sent += 1
         total_messages_sent += 1
-        leave_chance = 1 / (messages_sent + 1)
         return random.choice(messages)
 
     elif bot_name == "Bot_Adrian":
