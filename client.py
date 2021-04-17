@@ -49,7 +49,7 @@ def commands(msg):
 
     # Exits program
     elif command[0] == "/exit":
-        
+
         running = False
         return "Now exiting program"
 
@@ -208,6 +208,7 @@ def get_all_user_messages(wanted_room_id):
     return requests.get("{}/api/room/{}/{}/messages".format(api_url, wanted_room_id, user_id),
                         json={"user_id": user_id})
 
+
 # While loop waits for input, if the input contains "/" as the first symbol it launches the command method
 def send_message():
     global running
@@ -249,6 +250,7 @@ def send_message():
         leaving = False
         threading.Thread(target=send_message).start()
 
+
 def receive_message():
     global running
     global old_message_array
@@ -273,6 +275,7 @@ def receive_message():
     except:
         running = False
         print("receiving messages stopped")
+
 
 # Checks if a second argument is given, that indicates if it should run as a bot or not
 try:
