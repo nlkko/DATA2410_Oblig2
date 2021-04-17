@@ -225,7 +225,6 @@ def send_message():
             else:
                 msg = bot_message()
                 time.sleep(2)
-                print("Bot said: " + msg)
 
             if msg[0] == "/":
                 print("\n            " + commands(msg) + "\n")
