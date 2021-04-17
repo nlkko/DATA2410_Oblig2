@@ -2,7 +2,7 @@ import requests
 import random
 import uuid
 
-bot_id = None
+bot_id = "admin"
 url = None
 bot_name = None
 in_room = False
@@ -148,4 +148,3 @@ def bot_message():
         messages_sent += 1
         total_messages_sent += 1
         return random.choice(messages)
-
