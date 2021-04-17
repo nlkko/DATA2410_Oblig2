@@ -12,6 +12,7 @@ messages_sent = 0
 total_messages_sent = 0
 bot_names = ["Bot_Tobias", "Bot_William", "Bot_Adrian", "Bot_Eirik"]
 
+
 def login(name, api_url):
     global bot_id
     global bot_name
@@ -66,6 +67,7 @@ def leave(chance):
         return True
     else:
         return False
+
 
 # Goes through different phases: login, join/create room, and then finally send message.
 # Then depending on the bot name it sends different messages
@@ -148,4 +150,3 @@ def bot_message():
         messages_sent += 1
         total_messages_sent += 1
         return random.choice(messages)
-
