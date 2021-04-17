@@ -2,7 +2,7 @@ import requests
 import random
 import uuid
 
-bot_id = "admin"
+bot_id = None
 url = None
 bot_name = None
 in_room = False
@@ -40,14 +40,18 @@ def login(name, api_url):
 
 def join():
     global in_room
+    # Gets all rooms
     request = requests.get("{}/api/rooms".format(url), json={"user_id": bot_id}).json()
     rooms = []
     for room in request:
         rooms.append(room["id"])
 
+    # The more rooms the lesser chance of creating a new one
     if random.random() <= 1 / (len(rooms) + 1):
+        # Creates a new room with a random name
         return "/create " + uuid.uuid4().hex[:4]
     else:
+        # Joins a room from the list of rooms
         room = "/join " + random.choice(rooms)
         in_room = True
         return room
@@ -55,6 +59,7 @@ def join():
 
 # Will decide if bot leaves or exits
 def leave(chance):
+    # Number is smaller than chance, if it is the it leaves
     if random.random() <= chance:
         return True
     else:
@@ -78,6 +83,7 @@ def bot_message():
         return join()
 
     elif leave(leave_chance):
+        # Resets variables connected to being in a room
         messages_sent = 0
         leave_chance = -1
         in_room = False
@@ -85,6 +91,7 @@ def bot_message():
     else:
         leave_chance = (1 + messages_sent) / (8 + messages_sent)
 
+    # Different bots with different messages.
     if bot_name == "Bot_Tobias":
         messages = [
             "樂高生化戰士 是樂高積木由",

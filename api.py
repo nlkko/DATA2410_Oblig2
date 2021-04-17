@@ -36,7 +36,7 @@ def return_selected(search, objects, search_type="id"):
 # Users
 @app.route('/api/users', methods=['GET', 'POST'])
 def usr():
-    # Returns all registered users in json
+    # Returns all registered users
     if request.method == 'GET':
         # Checks if logged in user is valid
         try:
@@ -47,7 +47,7 @@ def usr():
             abort(400)
         return jsonify(users)
 
-    # Registers an user
+    # Adds an user to user array and returns user
     if request.method == 'POST':
         new_user = {"id": uuid.uuid4().hex[:16], "username": request.json["username"]}
         users.append(new_user)
@@ -55,12 +55,12 @@ def usr():
         return jsonify(new_user)
 
 
-# Chat-Rooms:
+# Chat-Rooms
 @app.route('/api/user/<string:user_id>', methods=['GET', 'DELETE'])
 def usr_id(user_id):
     selected_user = None
     logged_in_user = None
-    # Checks if selected id exists, if not throws an exception
+    # Checks if selected id and logged in user is valid, if not throws an exception
     try:
         selected_user = return_selected(user_id, users)
         logged_in_user = return_selected(request.json["user_id"], users)["id"]
@@ -102,15 +102,18 @@ def roo():
     # Creates a new room
     if request.method == 'POST':
         name = None
+        # Checks if a name is given
         try:
             name = request.json["name"]
         except KeyError:
             abort(400)
+        # Adds a room to rooms array, returns the room
         new_room = {"id": uuid.uuid4().hex[:16], "name": name, "user_id": logged_in_user, "messages": [], "users": []}
         new_room["users"].append(logged_in_user)
         rooms.append(new_room)
         write_json(rooms, "rooms.json")
         return jsonify(new_room)
+
 
 @app.route("/api/room/<string:room_id>", methods=["GET", "DELETE"])
 def roo_id(room_id):
@@ -122,6 +125,7 @@ def roo_id(room_id):
     except KeyError:
         abort(400)
 
+    # Checks if valid room id
     selected_room = None
     user_id = ""
     for room in rooms:
@@ -152,12 +156,13 @@ def roo_id(room_id):
 def roo_usrs(room_id):
     logged_user_id = None
     selected_room = None
+    # Check if user and room is valid
     try:
-        # Check if user_id is valid
         logged_user_id = return_selected(request.json["user_id"], users)["id"]
         selected_room = return_selected(room_id, rooms)
     except TypeError:
-        # Handles exception if user does not give input an user_id
+        abort(404)
+    except KeyError:
         abort(400)
 
     # Get all users from a room
