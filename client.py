@@ -238,7 +238,7 @@ def send_message():
 
     if leaving:
         old_message_array = []
-        first_time_thread = 1
+        first_time_thread = 0
         running = True
         leaving = False
         threading.Thread(target=send_message).start()
