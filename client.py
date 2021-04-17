@@ -95,6 +95,7 @@ def commands(msg):
             if room_id is None:
                 return "You are not in a room\n"
 
+            running = False
             leaving = True
             room_id = None
             return "Leaving current room"
@@ -239,8 +240,8 @@ def send_message():
         old_message_array = []
         first_time_thread = 1
         running = True
-        threading.Thread(target=send_message).start()
         leaving = False
+        threading.Thread(target=send_message).start()
 
 
 def receive_message():
