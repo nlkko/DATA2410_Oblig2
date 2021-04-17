@@ -149,8 +149,5 @@ def bot_message():
 
         messages_sent += 1
         total_messages_sent += 1
-<<<<<<< HEAD
         return random.choice(messages)
-=======
-        return random.choice(messages)
->>>>>>> main
+

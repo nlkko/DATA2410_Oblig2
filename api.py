@@ -4,7 +4,6 @@ import uuid
 import json
 
 app = Flask(__name__)
-app.config["DEBUG"] = True
 api = Api(app)
 
 # Reading the JSON files
