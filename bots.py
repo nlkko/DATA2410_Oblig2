@@ -72,7 +72,7 @@ def bot_message():
     if leave(exit_chance):
         return "/exit"
     else:
-        exit_chance = 1 / (total_messages_sent + 1)
+        exit_chance = (1 + total_messages_sent) / (5 + total_messages_sent)
 
     if not in_room:
         return join()
