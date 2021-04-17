@@ -83,7 +83,7 @@ def bot_message():
         in_room = False
         return "/leave"
     else:
-        leave_chance = 1 / (messages_sent + 1)
+        leave_chance = exit_chance = (1 + messages_sent) / (5 + messages_sent)
 
     if bot_name == "Bot_Tobias":
         messages = [
